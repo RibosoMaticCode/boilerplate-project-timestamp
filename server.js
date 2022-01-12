@@ -25,42 +25,6 @@ app.get("/api/hello", function (req, res) {
 
 // FUNCTIONS:
 
-// convert unix a date -> Return 2020-12-09
-const convertUnixToDate = (unix) => {
-  const d = new Date(parseInt(unix))
-  const year = d.getFullYear() // 2019
-  const month = (d.getMonth() + 1).toString().padStart(2, '0')// 03
-  const day = d.getDate().toString().padStart(2, '0') // 09
-  const h = d.getHours().toString().padStart(2, '0')
-  const m = d.getMinutes().toString().padStart(2, '0')
-  const s=  d.getSeconds().toString().padStart(2, '0')
-
-  const dateReturn = year + "-" + month + "-" + day + " "+h+":"+m+":"+s;
-  console.log(dateReturn)
-  return dateReturn;
-}
-
-// validate format unix -> Return true/false
-const isValidUnix = (unix) => {
-  let regNumber = /^-?\d+$|^\d+$/ // solo aceptamos numeros que empiecen con -negativo ó positivos
-  if( !regNumber.test(unix) ) return false
-
-  dateFormat = convertUnixToDate(unix)
-  if (isValidaFormat(dateFormat, false)) return true
-  else return false
-}
-
-// validate format 2022-01-10 -> Return true/false
-const isValidaFormat = (dateFormat, short=true) => {
-  // patron
-  let dateReg = ''
-  if( short ) dateReg = /^\d{4}[./-]\d{2}[./-]\d{2}$/
-  else dateReg = /^\d{4}[./-]\d{2}[./-]\d{2}\s\d{2}[.:]\d{2}[.:]\d{2}$/
-
-  if (dateReg.test(dateFormat)) return true
-  else return false
-}
-
 // conver to UTC -> Return string Mon, 10 Jan 2022 00:00:00 GMT
 const convertToUTC = (dateFormat) => {
   return new Date(dateFormat).toUTCString()
@@ -69,6 +33,45 @@ const convertToUTC = (dateFormat) => {
 // convert to UNIX -> Return string 1641772800000
 const convertToUNIX = (dateFormat) => {
   return (new Date(dateFormat)).getTime();
+}
+
+// validate standar
+const validaDateString = (dateString) => {
+  
+  let numberReg = /^-?\d+$|^\d+$/ // solo aceptamos numeros que empiecen con -negativo ó positivos
+  let d = '';
+
+  // si dateString es numero
+  if( numberReg.test(dateString) ){
+    console.log('es numero')
+    console.log(new Date(parseInt(dateString)))
+    d = new Date(parseInt(dateString))
+  }
+  // es dateString es letras
+  else{
+    console.log('es cadena')
+    console.log(new Date(dateString + ' UTC'))
+
+    // evaluamos si fecha valida
+    if( !Date.parse(dateString) ) {
+      console.log('Fecha invalida')
+      return false;
+    }
+    
+    d = new Date(dateString + ' UTC')
+  }
+
+  const year = d.getFullYear() // 2019
+  const month = (d.getMonth() + 1).toString().padStart(2, '0')// 03
+  const day = d.getDate().toString().padStart(2, '0') // 09
+  const h = d.getHours().toString().padStart(2, '0')
+  const m = d.getMinutes().toString().padStart(2, '0')
+  const s=  d.getSeconds().toString().padStart(2, '0')
+  const mi = d.getMilliseconds();
+
+  const dateReturn = year + "-" + month + "-" + day + " "+h+":"+m+":"+s +":"+mi;
+  console.log(dateReturn)
+  return dateReturn;
 }
 
 // ROUTES:
@@ -82,43 +85,31 @@ app.get("/api/", function (req, res) {
   
 })
 
-app.get("/api/:date", function (req, res) {
+app.get("/api/:dateString", function (req, res) {
+  
+  let { dateString } = req.params;
+
   // validar fecha
-  let { date } = req.params;
+  if(validaDateString(dateString)){
 
-  // Usar UTC zona horaria
-
-  // START THE MAGIC!
-  if (isValidaFormat(date)) {
-    console.log('esta fecha format')
-
-    // todo correcto devuelve datos json
+    let date = validaDateString(dateString);
+    console.log( Date.parse(date) )
     res.json({
-      unix: convertToUNIX(date),
+      unix: convertToUNIX(date), //Date.parse(date),
       utc: convertToUTC(date)
     });
 
   }
-  // si fecha unix es valida
-  else if (isValidUnix(date)) {
-    console.log('esta fecha UNIX')
-    convert_date = convertUnixToDate(date)
-    res.json({
-      unix: parseInt(date),
-      utc: convertToUTC(convert_date)
-    });
-  }
-
   // caso contrario error
   else {
+
     res.json({
       error: "Invalid Date"
     });
+
   }
 
 });
-
-
 
 // listen for requests :)
 var listener = app.listen('3000', function () {
