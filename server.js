@@ -43,18 +43,13 @@ const validaDateString = (dateString) => {
 
   // si dateString es numero
   if( numberReg.test(dateString) ){
-    console.log('es numero')
-    console.log(new Date(parseInt(dateString)))
     d = new Date(parseInt(dateString))
   }
-  // es dateString es letras
+  // es dateString es cadena-letras
   else{
-    console.log('es cadena')
-    console.log(new Date(dateString + ' UTC'))
 
-    // evaluamos si fecha valida
+    // evaluamos si fecha es invalida
     if( !Date.parse(dateString) ) {
-      console.log('Fecha invalida')
       return false;
     }
     
@@ -70,7 +65,8 @@ const validaDateString = (dateString) => {
   const mi = d.getMilliseconds();
 
   const dateReturn = year + "-" + month + "-" + day + " "+h+":"+m+":"+s +":"+mi;
-  console.log(dateReturn)
+
+  // retornamos fecha formato yyyy-mm-dd hh-mm-ss-mm
   return dateReturn;
 }
 
@@ -93,7 +89,6 @@ app.get("/api/:dateString", function (req, res) {
   if(validaDateString(dateString)){
 
     let date = validaDateString(dateString);
-    console.log( Date.parse(date) )
     res.json({
       unix: convertToUNIX(date), //Date.parse(date),
       utc: convertToUTC(date)
